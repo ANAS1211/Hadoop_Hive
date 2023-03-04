@@ -1,0 +1,354 @@
+Hadoop, un outil qui permet de gérer un cluster de machines,un outil de stockage, calcul et orchestration d'architectures distribuée
+
+Pour améliorer la puissance de calcul d'un système, il existe deux grands principes :
+
+Scaling Up: (montée en charge verticale) qui consiste à augmenter la puissance d'une machine
+Scaling Out: (montée en charge horizontale) qui consiste à ajouter des machines pour qu'elles travaillent ensemble.
+
+Cluster un ensemble de machines aussi appelées nœuds du cluster:
+nœud maître (master node). chef d'orchestre du cluster.
+nœud esclave (slave node) ou de noeud ouvrier (worker node):Les autres machines sont consacrées à l'exécution des tâches et au stockage
+
+Dans un cluster de machines, les données subissent deux effets: 
+la partition:Les données sont découpées en blocs de taille homogène et générés dans l'ordre du jeu de données
+						 mais ils peuvent aussi être découpés en suivant des critères bien précis.
+la réplication:Des copies des données sont créées et réparties sur les différentes machines du cluster
+le théorème CAP, donne des limites aux systèmes distribués : ce théorème spécifie qu'on ne peut pas obtenir :
+		une disponibilité parfaite ainsi qu'une parfaite cohérence des données si ces données sont distribuées.
+ le théorème CAP spécifie que pour tout système de stockage de données, on ne peut qu'avoir deux des trois propriétés suivantes :
+ cohérence (consistency), disponibilité (availability), distribution (partition tolerance).
+Calculs : Map Reduce
+5. WordCount
+6. Combiners
+7. Partitioners
+
+different commands HDFS 
+# creating a local file
+touch ~/file1
+
+# moving the file to HDFS
+hdfs dfs -put ~/file1 /my_file
+
+# creating a folder
+hdfs dfs -mkdir /new_data
+
+# removing a file
+hdfs dfs -rm /my_file
+
+# copying a file from and to the distributed file system
+hdfs dfs -cp /my_data/book1.txt /new_data/
+
+# removing a folder
+hdfs dfs -rm -r /new_data
+
+# copying a folder from and to the distributed file system
+hdfs dfs -cp -r /my_data/book1.txt /book2.txt
+
+# moving  a file from and to the distributed file system
+hdfs dfs -mv /book2.txt /my_data/book3.txt
+
+HADOOP
+Hadoop est principalement composé de 3 éléments :
+HDFS (Hadoop Distributed File System): HDFS est responsable de la partition, de la réplication ainsi que la répartition des données.
+	Lors du fonctionnement de HDFS, différents démons entrent en jeu :
+Datanode:le datanode est un démon qui tourne sur les nœuds esclaves du container.
+	 C'est lui qui gère les données stockées sur la machine et permet d'interagir avec les autres démons pour rendre la donnée disponible.
+Namenode:le namenode tourne sur un des nœuds maître du cluster. Il gère les informations sur les méta-données sur la localisation des partitions.
+	 Le namenode interagit avec les datanodes pour orchestrer la lecture et l'écriture des données.
+SecondaryNamenode: Le ou les secondary namenode(s) sont des démons qui vont tourner sur d'autres nœuds maîtres du cluster. 
+			Ce démon prend des instantanés du namenode de façon à pouvoir reprendre son rôle si jamais celui-ci tombe.
+
+YARN (Yet Another Resource Negociator): YARN est responsable de l'orchestration des Jobs ainsi que de l'attribution des ressources.
+Resource Manager
+Application Manager
+Node Manager
+Containers
+
+Hadoop MapReduce: Hadoop MapReduce est une librairie Java qui permet de créer des Jobs MapReduce.
+
+Hadoop Streaming: permet utiliser d'autres langages de programmation en écrivant, puis lisant les résultats dans la sortie standard
+
+Trois modes d'installations sont possibles
+
+Mode distribué: ce mode est le mode standard, utilisé lorsqu'on veut configurer un cluster.
+Mode pseudo-distribué: ce mode est un mode de démonstration qui déploie Hadoop sur une machine seule en simulant des nœuds.
+Mode Stand-alone: ce mode est aussi un mode de démonstration qui utilise le système de fichiers de la machine hôte comme un réseau à un seul nœud.
+
+installer Hadoop selon le mode pseudo-distribué avec deux datanodes.
+
+core-site.xml
+Ce fichier contient les informations de configuration du namenode. Nous allons faire tourner le namenode sur le port 9000 de la machine.
+
+pour le lancer en mode pseudo-distribué. Le dossier ~/hadoop/etc/hadoop contient de nombreux fichiers de configuration.
+
+core-site.xml
+Ce fichier contient les informations de configuration du namenode. Nous allons faire tourner le namenode sur le port 9000 de la machine.
+
+Exécutez cette commande pour éditer le fichier core-site.xml
+
+nano /home/ubuntu/hadoop/etc/hadoop/core-site.xml
+Entre les balises <configuration>, coller les lignes suivantes
+
+<property>
+<name>fs.default.name</name>
+<value>hdfs://localhost:9000</value>
+</property>
+Sortez du fichier en le sauvegardant
+
+hdfs-site.xml
+Ce fichier contient des informations sur le fonctionnement de HDFS. 
+Nous allons choisir un facteur de réplication de 1 (c'est-à-dire 2 copies par partition).
+Nous devons aussi spécifier des dossiers du système de fichier locaux dans lequel les données seront stockées.
+Nous devons en faire une copie pour lancer deux datanodes.
+hdfs-site2.xml
+Nous allons à présent éditer le fichier hdfs-site2.xml
+
+Exécutez cette commande pour éditer le fichier hdfs-site2.xml
+
+nano /home/ubuntu/hadoop/etc/hadoop/hdfs-site2.xml
+Dans ce fichier, entre les balises <configuration>, collez les lignes suivantes
+
+<property>
+<name>dfs.replication</name>
+<value>2</value>
+</property>
+<property>
+<name>dfs.permission</name>
+<value>false</value>
+</property>
+<property>
+<name>dfs.name.dir</name>
+<value>/home/ubuntu/data/data-namenode</value>
+</property>
+<property>
+<name>dfs.namenode.http-address</name>
+<value>0.0.0.0:50070</value>
+</property>
+<property>
+<name>dfs.data.dir</name>
+<value>/home/ubuntu/data/data-datanode2</value>
+</property>
+<property>
+<name>dfs.datanode.address</name>
+<value>0.0.0.0:50012</value>
+</property>
+<property>
+<name>dfs.datanode.http.address</name>
+<value>0.0.0.0:50076</value>
+</property>
+<property>
+<name>dfs.datanode.https.address</name>
+<value>0.0.0.0:50476</value>
+</property>
+<property>
+<name>dfs.datanode.ipc.address</name>
+<value>0.0.0.0:50021</value>
+</property>
+mapred-site.xml
+Ce fichier contient les informations sur l'orchestrateur que nous allons utiliser : YARN. Nous devons copier le template du fichier mapred-site.xml.
+
+Exécutez cette commande pour éditer le fichier mapred-site.xml
+
+cp /home/ubuntu/hadoop/etc/hadoop/mapred-site.xml.template /home/ubuntu/hadoop/etc/hadoop/mapred-site.xml
+nano /home/ubuntu/hadoop/etc/hadoop/mapred-site.xml
+Entre les balises <configuration>, collez les lignes suivantes
+
+<property>
+<name>mapreduce.framework.name</name>
+<value>yarn</value>
+</property>
+Sortez du fichier en le sauvegardant
+
+yarn-site.xml
+Ce fichier contient la configuration de YARN. Nous allons lui spécifier les classes de la librairie Java MapReduce à utiliser.
+
+Exécutez cette commande pour éditer le fichier yarn-site.xml
+
+nano /home/ubuntu/hadoop/etc/hadoop/yarn-site.xml
+Dans les balises <configuration>, collez les lignes suivantes
+
+<property>
+<name>yarn.nodemanager.aux-services</name>
+<value>mapreduce_shuffle</value>
+</property>
+<property>
+<name>yarn.nodemanager.auxservices.mapreduce.shuffle.class</name>
+<value>org.apache.hadoop.mapred.ShuffleHandler</value>
+</property>
+Sortez du fichier en le sauvegardant
+
+hadoop-env.sh
+Enfin dans ce fichier, nous allons spécifier où Hadoop peut trouver Java.
+
+Exécutez cette commande pour éditer le fichier hadoop-env.sh
+
+nano /home/ubuntu/hadoop/etc/hadoop/hadoop-env.sh
+Ajoutez cette ligne à la fin du fichier
+
+export JAVA_HOME=/usr
+4. Génération de clefs SSH
+Hadoop a besoin de ssh pour connecter les différents éléments entre eux. Nous allons générer un jeu de clefs SSH.
+
+Exécutez la commande suivante et suivez les instructions (pas besoin de mot de passe) pour créer une commande ssh
+
+ssh-keygen
+Une fois la clef créée, on doit l'ajouter à la liste des clefs autorisées.
+
+Exécutez la commande suivante
+
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+Pour vérifier que la commande fonctionne bien, on va essayer de se connecter localement via SSH:
+
+Exécutez cette commande, acceptez d'ajouter cette adresse à la liste des adresses autorisés puis sortez de la connection en utilisant exit (une fois!)
+
+ssh 0.0.0.0
+5. Initialisation
+Tout d'abord, nous devons formatter le namenode.
+
+Formattez le namenode avec cette commande
+
+hdfs namenode -format
+Nous allons créer un dossier dans lequel les logs de Hadoop pourront être stockés:
+
+Exécutez cette commande pour créer un dossier /home/ubuntu/logs
+
+mkdir /home/ubuntu/logs
+Exécutez cette commande pour lancer le namenode
+
+hdfs namenode 2> ~/logs/namenode.log &
+Exécutez cette commande pour lancer le secondarynamenode
+
+hdfs secondarynamenode 2> ~/logs/secondarynamenode.log &
+Exécutez cette commande pour lancer le premier datanode
+
+hdfs datanode 2> ~/logs/datanode1.log &
+Exécutez cette commande pour lancer le second datanode
+
+hdfs datanode -conf /home/ubuntu/hadoop/etc/hadoop/hdfs-site2.xml 2> ~/logs/datanode2.log &
+On peut voir que HDFS a créé des dossiers dans le dossier /home/ubuntu/data. De plus, on peut voir quels sont les processus Java en fonctionnement avec la commande jps.
+
+Exécutez cette commande pour voir quels processus sont en fonctionnement
+
+En lançant cette commande, vous devriez voir les différents processus suivants:
+
+DataNode
+DataNode
+NameNode
+SecondaryNameNode
+Notez que les nombres à côté de ces processus sont des identifiants. Pour arrêter le processus correspondant, on pourra utiliser la commande kill -9 suivie du numéro du processus.
+****Hadoop Streaming est utilisé pour créer des Jobs MapReduce avec d'autres langages****
+comment créer un WordCount avec Python?
+
+Hive:permet d'abstraire une base de données relationnelle tout en utilisant Hadoop et HDFS 
+pour exécuter des requêtes et pour stocker les données
+Langage de requetage HiveQL
+les données sont stockées dans HDFS 
+et bénéficie donc de tous ses avantages (partition, redondance, ...) 
+ Hive n'est pas une base de données relationnelle. On peut le voir comme un outil pour construire des Data Warehouse ou plus simplement,
+ une abstraction de base de données relationnelle.
+
+Hive propose différentes possibilités d'interaction :
+
+JDBC: Java DataBase Connection
+ODBC: Open DataBase Connection
+Thrift Server
+
+On peut utiliser ces différentes solutions pour interagir avec Hive.
+Par exemple, si on souhaite utiliser un client Python, nous pouvons nous connecter au Thrift Server
+ qui se chargera de traduire les requêtes vers Hive.
+Hive propose différents services qui permettent son fonctionnement :
+
+CLI (Command Line Interface): interface en ligne de commande que nous utiliserons pour effectuer les requêtes.
+Driver: démon responsable de l'interprétation des requêtes.
+ C'est l'interface entre le client (CLI par exemple), 
+le compilateur et le moteur d'exécution (execution engine).
+Compiler: démon responsable de la lecture des requêtes, 
+l'optimisation de la requête et l'envoi vers le moteur d'exécution (execution engine)
+Execution engine: démon responsable de la traduction de la requête en Jobs MapReduce et de l'interface avec Hadoop.
+Le métastore est une base de données relationnelles qui contient les méta-données de Hive, 
+c'est-à-dire des informations sur les tables, leurs schémas etc
+
+Les DAGs (Directed Acyclic Graphs ou graphes orientés acycliques) 
+sont un concept fondamental de l'optimisation de plans d'exécution.
+ Un DAG est un graphe (au sens mathématique du terme) dont chaque nœud
+ représente une tâche et les liens entre ces noeuds représentent l'enchaînement de ces tâches.
+ On cherche alors à optimiser ce graphe en essayant de regrouper des tâches qui peuvent être effectuées 
+en même temps ou en trouvant les tâches qui peuvent être effectuées parallélement.
+
+Il existe plusieurs types de données dans Hive:
+
+Données numériques (TINYINT, SMALLINT, INT, BIGINT, FLOAT, DOUBLE, ...)
+Données temporelles (TIMESTAMP, DATE, INTERVAL)
+Données texte (STRING, VARCHAR, CHAR)
+Types divers (BINARY, BOOLEAN)
+De plus, certains types avancés peuvent être utilisés:
+
+arrays: des listes de valeur
+maps: des listes de couple clef-valeurs
+structs: des sortes de dictionnaires
+union: un type parmis un ensemble de types
+
+On parle de partionnement statique lorsqu'on définit à l'avance 
+les critères de création des partitions et de partitionnement dynamique
+ lorsqu'on laisse Hive créer les différentes partitions de nos données automatiquement.
+
+-- creating a database
+CREATE DATABASE my_hive_db;
+
+-- selecting the database
+USE my_hive_db;
+
+CREATE TABLE my_table
+(
+    id INT,
+    name VARCHAR(64)
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ","
+LINES TERMINATED BY "\n"
+STORED AS TEXTFILE;
+--Inserer des données dans la table
+INSERT INTO my_table
+VALUES (1, 'Paul'), (2, 'Daniel');
+
+SELECT * FROM my_table;
+
+USE movie_lens;
+
+CREATE TABLE ratings
+(
+    userid INT,
+    movieid INT,
+    rating DOUBLE,
+    time_stamp INT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ","
+LINES TERMINATED BY "\n"
+STORED AS TEXTFILE;
+
+##charger des données depuis un fichier
+LOAD DATA INPATH '/ratings.csv'
+INTO TABLE ratings;
+##afficher les premières lignes
+SELECT * FROM ratings LIMIT 5;
+
+créer une table ratings_partitions dans laquelle les données 
+seront partitionnées selon la valeur de rating
+
+USE movie_lens;
+
+SET hive.exec.dynamic.partition=true;
+SET hive.exec.dynamic.partition.mode=nonstrict;
+
+CREATE TABLE ratings_partitions
+(
+    userId INT,
+    movieId INT,
+    time_stamp INT
+)
+PARTITIONED BY (rating DOUBLE)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ","
+LINES TERMINATED BY "\n"
+STORED AS TEXTFILE;
